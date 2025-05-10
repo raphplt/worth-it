@@ -37,7 +37,7 @@ function Slide1({
 
 			<p className="mb-4">Priorité</p>
 			<Slider
-				defaultValue={[1]}
+				defaultValue={[priority]}
 				max={100}
 				min={1}
 				value={[priority]}

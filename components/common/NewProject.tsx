@@ -9,29 +9,18 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "../ui/button";
 import Slide1 from "../form/slides/Slide1";
+import Slide2 from "../form/slides/Slide2";
+import useForm from "@/hooks/useForm";
 
 function NewProject() {
 	const [slideStep, setSlideStep] = useState(0);
-	const [formData, setFormData] = useState({
-		name: "",
-		description: "",
-		priority: 1,
-	});
-
-	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const { name, value } = e.target;
-		setFormData((prev) => ({
-			...prev,
-			[name]: value,
-		}));
-	};
-
-	const handlePriorityChange = (value: number) => {
-		setFormData((prev) => ({
-			...prev,
-			priority: value,
-		}));
-	};
+	const {
+		formData,
+		handleChange,
+		handleRadioChange,
+		handlePriorityChange,
+		handleSubmit,
+	} = useForm();
 
 	const renderStep = () => {
 		switch (slideStep) {
@@ -45,24 +34,43 @@ function NewProject() {
 						onPriorityChange={handlePriorityChange}
 					/>
 				);
+			case 1:
+				return (
+					<Slide2
+						time={formData.time}
+						urgent={formData.urgent}
+						important={formData.important}
+						desire={formData.desire}
+						onChange={handleChange}
+						onRadioChange={handleRadioChange}
+					/>
+				);
 			default:
 				return null;
 		}
 	};
 
 	const renderNextButton = () => {
-		if (slideStep === 0) {
+		if (slideStep < 1) {
 			return (
 				<Button type="button" onClick={() => setSlideStep((prev) => prev + 1)}>
 					Suivant
 				</Button>
 			);
 		}
-		return (
-			<Button type="button" onClick={() => setSlideStep((prev) => prev - 1)}>
-				Précédent
-			</Button>
-		);
+		if (slideStep === 1) {
+			return (
+				<div className="flex gap-2">
+					<Button type="button" onClick={() => setSlideStep((prev) => prev - 1)}>
+						Précédent
+					</Button>
+					<Button type="button" onClick={handleSubmit}>
+						Enregistrer
+					</Button>
+				</div>
+			);
+		}
+		return null;
 	};
 
 	return (
