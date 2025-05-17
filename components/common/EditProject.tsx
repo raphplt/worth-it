@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
+import { Pencil } from "lucide-react";
 
 interface Project {
 	id: number;
@@ -79,6 +80,7 @@ export default function EditProject({
 		<Dialog open={isOpen} onOpenChange={setIsOpen}>
 			<DialogTrigger asChild>
 				<Button variant="outline" size="sm">
+					<Pencil className="w-4 h-4 mr-2" />
 					Modifier
 				</Button>
 			</DialogTrigger>

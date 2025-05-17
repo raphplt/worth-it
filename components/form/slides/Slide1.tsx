@@ -3,13 +3,11 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
-import { getPriorityName } from "@/helpers/form";
 
 interface Slide1Props {
 	name: string;
 	description: string;
 	priority: number;
-	deadline: string;
 	onChange: (
 		e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
 	) => void;
@@ -20,53 +18,44 @@ export default function Slide1({
 	name,
 	description,
 	priority,
-	deadline,
 	onChange,
 	onPriorityChange,
 }: Slide1Props) {
 	return (
 		<div className="space-y-6">
 			<div>
-				<Label htmlFor="name">Nom du projet</Label>
+				<Label htmlFor="name" className="text-lg font-medium">
+					Nom du projet
+				</Label>
 				<Input
 					id="name"
 					name="name"
 					value={name}
 					onChange={onChange}
-					className="mt-1"
+					className="mt-1 p-4"
+					placeholder="Entrez le nom de votre projet"
 					required
 				/>
 			</div>
 
 			<div>
-				<Label htmlFor="description">Description</Label>
+				<Label htmlFor="description" className="text-lg font-medium">
+					Description
+				</Label>
 				<Textarea
 					id="description"
 					name="description"
 					value={description}
 					onChange={onChange}
-					className="mt-1"
-					rows={3}
+					className="mt-1 p-4"
+					placeholder="Décrivez votre projet en quelques lignes"
+					rows={4}
 				/>
 			</div>
 
 			<div>
-				<Label htmlFor="deadline">Date butoir</Label>
-				<Input
-					id="deadline"
-					name="deadline"
-					type="date"
-					value={deadline}
-					onChange={onChange}
-					className="mt-1"
-					min={new Date().toISOString().split("T")[0]}
-					required
-				/>
-			</div>
-
-			<div>
-				<Label>Priorité</Label>
-				<div className="mt-2">
+				<Label className="text-lg font-medium">Priorité</Label>
+				<div className="mt-3">
 					<Slider
 						value={[priority]}
 						onValueChange={(value) => onPriorityChange(value[0])}
@@ -74,7 +63,11 @@ export default function Slide1({
 						step={1}
 						className="w-full"
 					/>
-					<div className="mt-2 text-sm text-gray-500">Valeur : {priority}%</div>
+					<div className="mt-2 flex justify-between">
+						<span className="text-sm text-gray-500">Faible priorité</span>
+						<span className="text-sm font-medium">{priority}%</span>
+						<span className="text-sm text-gray-500">Haute priorité</span>
+					</div>
 				</div>
 			</div>
 		</div>

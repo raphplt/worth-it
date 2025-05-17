@@ -1,158 +1,139 @@
-import React, { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
+import React, { useEffect, useCallback } from "react";
 import { toast } from "sonner";
-
-interface Project {
-	id: number;
-	name: string;
-	weeklyHours: number;
-	preferredDays: string[];
-	preferredHours: string[];
-}
-
-interface TimeSlot {
-	day: string;
-	hour: string;
-	project: Project | null;
-}
-
-const DAYS = [
-	"Lundi",
-	"Mardi",
-	"Mercredi",
-	"Jeudi",
-	"Vendredi",
-	"Samedi",
-	"Dimanche",
-];
-
-const TIME_SLOTS = [
-	"9h-10h",
-	"10h-11h",
-	"11h-12h",
-	"14h-15h",
-	"15h-16h",
-	"16h-17h",
-	"17h-18h",
-];
+import { useProjects } from "./hooks/useProjects";
+import { useSchedule } from "./hooks/useSchedule";
+import CalendarControls from "./CalendarControls";
+import DayColumn from "./DayColumn";
 
 export default function WeeklyCalendar() {
-	const [projects, setProjects] = useState<Project[]>([]);
-	const [schedule, setSchedule] = useState<TimeSlot[]>([]);
-	const [isLoading, setIsLoading] = useState(true);
+	const { projects, isLoading, error } = useProjects();
+	const {
+		displayMode,
+		expandedGroups,
+		currentWeek,
+		generateSchedule,
+		toggleDisplayMode,
+		toggleGroupExpansion,
+		getSlotsForDayAndGroup,
+		hasProjectsInDayGroup,
+		getFormattedDate,
+		isToday,
+		goToPreviousWeek,
+		goToNextWeek,
+		goToCurrentWeek,
+	} = useSchedule(projects);
+
+	// Memoize the effect callback to prevent unnecessary rerenders
+	const initializeSchedule = useCallback(() => {
+		if (projects.length > 0) {
+			generateSchedule();
+		}
+	}, [projects.length, generateSchedule]);
 
 	useEffect(() => {
-		fetchProjects();
-	}, []);
-
-	const fetchProjects = async () => {
-		try {
-			const response = await fetch("/api/projects");
-			if (!response.ok) throw new Error("Failed to fetch projects");
-			const data = await response.json();
-			setProjects(data);
-			generateSchedule(data);
-		} catch (error) {
-			console.error("Error fetching projects:", error);
-			toast.error("Erreur lors du chargement des projets");
-		} finally {
-			setIsLoading(false);
-		}
-	};
-
-	const generateSchedule = (projects: Project[]) => {
-		// Créer une grille vide
-		const emptySchedule: TimeSlot[] = [];
-		DAYS.forEach((day) => {
-			TIME_SLOTS.forEach((hour) => {
-				emptySchedule.push({ day, hour, project: null });
-			});
-		});
-
-		// Trier les projets par priorité (à implémenter)
-		const sortedProjects = [...projects].sort(
-			(a, b) => b.weeklyHours - a.weeklyHours
-		);
-
-		// Assigner les créneaux
-		const newSchedule = [...emptySchedule];
-		sortedProjects.forEach((project) => {
-			let hoursAssigned = 0;
-			const preferredSlots = newSchedule.filter(
-				(slot) =>
-					project.preferredDays.includes(slot.day) &&
-					project.preferredHours.includes(slot.hour) &&
-					slot.project === null
-			);
-
-			while (hoursAssigned < project.weeklyHours && preferredSlots.length > 0) {
-				const randomIndex = Math.floor(Math.random() * preferredSlots.length);
-				const slot = preferredSlots[randomIndex];
-				const scheduleIndex = newSchedule.findIndex(
-					(s) => s.day === slot.day && s.hour === slot.hour
-				);
-				newSchedule[scheduleIndex].project = project;
-				preferredSlots.splice(randomIndex, 1);
-				hoursAssigned++;
-			}
-		});
-
-		setSchedule(newSchedule);
-	};
+		initializeSchedule();
+	}, [initializeSchedule]);
 
 	const handleRegenerate = () => {
-		generateSchedule(projects);
+		generateSchedule();
 		toast.success("Emploi du temps régénéré");
 	};
 
+	// Create week label from currentWeek
+	const getWeekLabel = () => {
+		if (currentWeek.length === 0) return "";
+
+		const startDate = currentWeek[0].date;
+		const endDate = currentWeek[6].date;
+
+		const formatter = new Intl.DateTimeFormat("fr-FR", {
+			day: "numeric",
+			month: "short",
+		});
+
+		return `${formatter.format(startDate)} - ${formatter.format(endDate)}`;
+	};
+
+	// Handle week navigation
+	const handlePreviousWeek = () => {
+		goToPreviousWeek();
+		// We need to regenerate the schedule after changing the week
+		setTimeout(() => generateSchedule(), 0);
+	};
+
+	const handleNextWeek = () => {
+		goToNextWeek();
+		setTimeout(() => generateSchedule(), 0);
+	};
+
+	const handleCurrentWeek = () => {
+		goToCurrentWeek();
+		setTimeout(() => generateSchedule(), 0);
+	};
+
 	if (isLoading) {
-		return <div>Chargement du calendrier...</div>;
+		return <div className="p-4 text-center">Chargement du calendrier...</div>;
+	}
+
+	if (error) {
+		return <div className="p-4 text-center text-red-500">{error}</div>;
+	}
+
+	if (projects.length === 0) {
+		return (
+			<div className="p-4 text-center">
+				Aucun projet à afficher dans le calendrier
+			</div>
+		);
 	}
 
 	return (
 		<div>
-			<div className="flex justify-end mb-4">
-				<Button onClick={handleRegenerate}>Régénérer l&apos;emploi du temps</Button>
-			</div>
-			<div className="grid grid-cols-8 gap-2">
-				{/* En-têtes */}
-				<div className="col-span-1"></div>
-				{DAYS.map((day) => (
-					<div
-						key={day}
-						className="text-center font-semibold p-2 bg-gray-100 rounded"
-					>
-						{day}
-					</div>
-				))}
+			<CalendarControls
+				projectCount={projects.length}
+				onRegenerate={handleRegenerate}
+				displayMode={displayMode}
+				onToggleDisplayMode={toggleDisplayMode}
+				onPreviousWeek={handlePreviousWeek}
+				onNextWeek={handleNextWeek}
+				onCurrentWeek={handleCurrentWeek}
+				currentWeekLabel={getWeekLabel()}
+			/>
 
-				{/* Créneaux horaires */}
-				{TIME_SLOTS.map((timeSlot) => (
-					<React.Fragment key={timeSlot}>
-						<div className="text-center p-2 bg-gray-50">{timeSlot}</div>
-						{DAYS.map((day) => {
-							const slot = schedule.find((s) => s.day === day && s.hour === timeSlot);
-							return (
-								<div
-									key={`${day}-${timeSlot}`}
-									className={`p-2 rounded ${
-										slot?.project ? "bg-blue-100 border border-blue-200" : "bg-gray-50"
-									}`}
-								>
-									{slot?.project && (
-										<div className="text-sm">
-											<div className="font-medium">{slot.project.name}</div>
-											<div className="text-xs text-gray-500">
-												{slot.project.weeklyHours}h/semaine
-											</div>
-										</div>
-									)}
-								</div>
-							);
-						})}
-					</React.Fragment>
-				))}
-			</div>
+			{displayMode === "horizontal" ? (
+				<div className="space-y-4">
+					{currentWeek.map((dayObj) => (
+						<DayColumn
+							key={dayObj.name}
+							day={dayObj.name}
+							expandedGroups={expandedGroups}
+							toggleGroupExpansion={toggleGroupExpansion}
+							getSlotsForDayAndGroup={getSlotsForDayAndGroup}
+							hasProjectsInDayGroup={hasProjectsInDayGroup}
+							displayMode={displayMode}
+							formattedDate={getFormattedDate(dayObj.name)}
+							isToday={isToday(dayObj.name)}
+						/>
+					))}
+				</div>
+			) : (
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+					{currentWeek.map((dayObj) => (
+						<div key={dayObj.name} className="border rounded-lg p-3 shadow-sm">
+							<DayColumn
+								day={dayObj.name}
+								expandedGroups={expandedGroups}
+								toggleGroupExpansion={toggleGroupExpansion}
+								getSlotsForDayAndGroup={getSlotsForDayAndGroup}
+								hasProjectsInDayGroup={hasProjectsInDayGroup}
+								displayMode={displayMode}
+								formattedDate={getFormattedDate(dayObj.name)}
+								isToday={isToday(dayObj.name)}
+							/>
+						</div>
+					))}
+				</div>
+			)}
 		</div>
 	);
 }
