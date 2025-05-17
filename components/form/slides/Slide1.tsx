@@ -1,54 +1,82 @@
+import React from "react";
+import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { getPriorityName } from "@/helpers/form";
-import React from "react";
 
 interface Slide1Props {
 	name: string;
 	description: string;
 	priority: number;
-	onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+	deadline: string;
+	onChange: (
+		e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+	) => void;
 	onPriorityChange: (value: number) => void;
 }
 
-function Slide1({
+export default function Slide1({
 	name,
 	description,
 	priority,
+	deadline,
 	onChange,
 	onPriorityChange,
 }: Slide1Props) {
 	return (
-		<div>
-			<Input
-				placeholder="Nom du projet"
-				className="mb-4"
-				name="name"
-				value={name}
-				onChange={onChange}
-			/>
-			<Input
-				placeholder="Description du projet"
-				className="mb-4"
-				name="description"
-				value={description}
-				onChange={onChange}
-			/>
+		<div className="space-y-6">
+			<div>
+				<Label htmlFor="name">Nom du projet</Label>
+				<Input
+					id="name"
+					name="name"
+					value={name}
+					onChange={onChange}
+					className="mt-1"
+					required
+				/>
+			</div>
 
-			<p className="mb-4">Priorité</p>
-			<Slider
-				defaultValue={[priority]}
-				max={100}
-				min={1}
-				value={[priority]}
-				onValueChange={(value) => onPriorityChange(value[0])}
-				step={1}
-				className="mb-4"
-				color="red"
-			/>
-			<p>{getPriorityName(priority)}</p>
+			<div>
+				<Label htmlFor="description">Description</Label>
+				<Textarea
+					id="description"
+					name="description"
+					value={description}
+					onChange={onChange}
+					className="mt-1"
+					rows={3}
+				/>
+			</div>
+
+			<div>
+				<Label htmlFor="deadline">Date butoir</Label>
+				<Input
+					id="deadline"
+					name="deadline"
+					type="date"
+					value={deadline}
+					onChange={onChange}
+					className="mt-1"
+					min={new Date().toISOString().split("T")[0]}
+					required
+				/>
+			</div>
+
+			<div>
+				<Label>Priorité</Label>
+				<div className="mt-2">
+					<Slider
+						value={[priority]}
+						onValueChange={(value) => onPriorityChange(value[0])}
+						max={100}
+						step={1}
+						className="w-full"
+					/>
+					<div className="mt-2 text-sm text-gray-500">Valeur : {priority}%</div>
+				</div>
+			</div>
 		</div>
 	);
 }
-
-export default Slide1;
