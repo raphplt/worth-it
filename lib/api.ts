@@ -1,3 +1,5 @@
+import { NextResponse } from "next/server";
+
 // Calcul de la pertinence d'un projet
 export const calculateProjectRelevance = (
 	priority: number,
@@ -34,3 +36,25 @@ export const calculateProjectRelevance = (
 		return "Peu pertinent";
 	}
 };
+
+// Route API pour calculer la pertinence
+export async function calculateRelevanceAPI(request: Request) {
+	try {
+		const body = await request.json();
+
+		const relevance = calculateProjectRelevance(
+			body.priority,
+			body.time,
+			body.urgent,
+			body.important,
+			body.desire
+		);
+		return NextResponse.json({ relevance });
+	} catch (error: unknown) {
+		if (error instanceof Error) {
+			return NextResponse.json({ message: error.message }, { status: 500 });
+		} else {
+			return NextResponse.json({ message: "Unknown error" }, { status: 500 });
+		}
+	}
+}
