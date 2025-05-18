@@ -1,23 +1,13 @@
-import fs from "fs";
-import path from "path";
-import { sql } from "@vercel/postgres";
+import { execSync } from "child_process";
 
-// Fonction pour initialiser la base de données
+// Fonction pour initialiser la base de données avec Prisma
 export async function initDatabase() {
 	try {
-		// Lire le script SQL
-		const sqlScript = fs.readFileSync(
-			path.join(process.cwd(), "db-setup.sql"),
-			"utf8"
-		);
-
-		// Exécuter le script SQL
-		await sql.query(sqlScript);
-
-		console.log("✅ Base de données initialisée avec succès");
+		execSync("npx prisma migrate deploy", { stdio: "inherit" });
+		console.log("✅ Base de données initialisée avec Prisma");
 	} catch (error) {
 		console.error(
-			"Erreur lors de l'initialisation de la base de données:",
+			"Erreur lors de l'initialisation de la base de données avec Prisma:",
 			error
 		);
 		throw error;

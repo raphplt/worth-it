@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { sql } from "@vercel/postgres";
+import { prisma } from "./prisma";
 import { auth } from "@/auth";
 
 // Types pour les projets
@@ -29,13 +29,11 @@ export async function getProjects() {
 	}
 
 	try {
-		const { rows } = await sql`
-			SELECT * FROM projects 
-			WHERE user_id = ${session.user.id}
-			ORDER BY created_at DESC
-		`;
-
-		return NextResponse.json(rows);
+		const projects = await prisma.project.findMany({
+			where: { userId: session.user.id },
+			orderBy: { created_at: "desc" },
+		});
+		return NextResponse.json(projects);
 	} catch (error: unknown) {
 		if (error instanceof Error) {
 			return NextResponse.json({ message: error.message }, { status: 500 });
@@ -54,12 +52,8 @@ export async function createProject(request: Request) {
 	}
 
 	try {
-		// Vérifier que l'utilisateur existe dans la base de données
-		const { rows: users } = await sql`
-			SELECT id FROM users WHERE id = ${session.user.id}
-		`;
-
-		if (users.length === 0) {
+		const user = await prisma.user.findUnique({ where: { id: session.user.id } });
+		if (!user) {
 			return NextResponse.json(
 				{ message: "Utilisateur introuvable dans la base de données" },
 				{ status: 404 }
@@ -81,30 +75,27 @@ export async function createProject(request: Request) {
 			preferredHours,
 		} = body;
 
-		const { rows } = await sql`
-			INSERT INTO projects (
-				name, description, priority, time, urgent, important,
-				desire, relevance, weekly_hours, preferred_days, preferred_hours, user_id
-			) VALUES (
-				${name}, 
-				${description}, 
-				${priority}, 
-				${time}, 
-				${urgent}, 
-				${important}, 
-				${desire}, 
-				${relevance}, 
-				${weeklyHours}, 
-				${JSON.stringify(preferredDays)}, 
-				${JSON.stringify(preferredHours)}, 
-				${session.user.id}
-			)
-			RETURNING id, name
-		`;
+		const project = await prisma.project.create({
+			data: {
+				name,
+				description,
+				priority,
+				time,
+				urgent,
+				important,
+				desire,
+				relevance,
+				weekly_hours: weeklyHours,
+				preferred_days: JSON.stringify(preferredDays),
+				preferred_hours: JSON.stringify(preferredHours),
+				user: { connect: { id: session.user.id } },
+			},
+			select: { id: true, name: true },
+		});
 
 		return NextResponse.json({
 			message: "Project saved successfully",
-			projectId: rows[0].id,
+			projectId: project.id,
 		});
 	} catch (error: unknown) {
 		if (error instanceof Error) {
@@ -140,30 +131,27 @@ export async function updateProject(request: Request) {
 			preferredHours,
 		} = body;
 
-		// Vérifier que le projet appartient à l'utilisateur
-		const { rows: projects } = await sql`
-			SELECT * FROM projects WHERE id = ${id}
-		`;
-
-		if (projects.length === 0 || projects[0].user_id !== session.user.id) {
+		const project = await prisma.project.findUnique({ where: { id } });
+		if (!project || project.userId !== session.user.id) {
 			return NextResponse.json({ message: "Non autorisé" }, { status: 403 });
 		}
 
-		await sql`
-			UPDATE projects SET 
-				name = ${name},
-				description = ${description},
-				priority = ${priority},
-				time = ${time},
-				urgent = ${urgent},
-				important = ${important},
-				desire = ${desire},
-				relevance = ${relevance},
-				weekly_hours = ${weeklyHours},
-				preferred_days = ${JSON.stringify(preferredDays)},
-				preferred_hours = ${JSON.stringify(preferredHours)}
-			WHERE id = ${id}
-		`;
+		await prisma.project.update({
+			where: { id },
+			data: {
+				name,
+				description,
+				priority,
+				time,
+				urgent,
+				important,
+				desire,
+				relevance,
+				weekly_hours: weeklyHours,
+				preferred_days: JSON.stringify(preferredDays),
+				preferred_hours: JSON.stringify(preferredHours),
+			},
+		});
 
 		return NextResponse.json({
 			message: "Project updated successfully",
@@ -191,10 +179,7 @@ export async function deleteProject(request: Request) {
 		const deleteAll = searchParams.get("deleteAll") === "true";
 
 		if (deleteAll) {
-			await sql`
-				DELETE FROM projects 
-				WHERE user_id = ${session.user.id}
-			`;
+			await prisma.project.deleteMany({ where: { userId: session.user.id } });
 			return NextResponse.json({
 				message: "All projects deleted successfully",
 			});
@@ -207,19 +192,14 @@ export async function deleteProject(request: Request) {
 			);
 		}
 
-		// Vérifier que le projet appartient à l'utilisateur
-		const { rows: projects } = await sql`
-			SELECT * FROM projects WHERE id = ${parseInt(id)}
-		`;
-
-		if (projects.length === 0 || projects[0].user_id !== session.user.id) {
+		const project = await prisma.project.findUnique({
+			where: { id: Number(id) },
+		});
+		if (!project || project.userId !== session.user.id) {
 			return NextResponse.json({ message: "Non autorisé" }, { status: 403 });
 		}
 
-		await sql`
-			DELETE FROM projects 
-			WHERE id = ${parseInt(id)}
-		`;
+		await prisma.project.delete({ where: { id: Number(id) } });
 
 		return NextResponse.json({
 			message: "Project deleted successfully",
