@@ -1,27 +1,35 @@
-import sqlite3 from "sqlite3";
-import { open } from "sqlite";
+import { sql } from "@vercel/postgres";
 
-// Création de la connexion à la base de données
-export const db = await open({
-	filename: "./worthit.db",
-	driver: sqlite3.Database,
-});
+export async function initDb() {
+	try {
+		await sql`
+			CREATE TABLE IF NOT EXISTS projects (
+				id SERIAL PRIMARY KEY,
+				name TEXT NOT NULL,
+				description TEXT,
+				priority INTEGER,
+				time BOOLEAN,
+				urgent BOOLEAN,
+				important BOOLEAN,
+				desire BOOLEAN,
+				relevance TEXT,
+				weekly_hours INTEGER,
+				preferred_days TEXT,
+				preferred_hours TEXT,
+				created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+				user_id TEXT
+			)
+		`;
 
-// Initialisation de la base de données
-await db.exec(`
-    CREATE TABLE IF NOT EXISTS projects (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        description TEXT,
-        priority INTEGER,
-        time BOOLEAN,
-        urgent BOOLEAN,
-        important BOOLEAN,
-        desire BOOLEAN,
-        relevance TEXT,
-        weekly_hours INTEGER,
-        preferred_days TEXT,
-        preferred_hours TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-`);
+		console.log("Base de données initialisée avec succès");
+		return { success: true };
+	} catch (error) {
+		console.error(
+			"Erreur lors de l'initialisation de la base de données:",
+			error
+		);
+		return { success: false, error };
+	}
+}
+
+export { sql };

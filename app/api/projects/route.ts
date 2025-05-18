@@ -1,12 +1,51 @@
-import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions as baseAuthOptions } from "@/lib/auth";
+import {
+	getProjects,
+	createProject,
+	updateProject,
+	deleteProject,
+	deleteAllProjects,
+} from "@/lib/projects";
+
+const getAuthOptions = async () => {
+	try {
+		const { authOptionsWithAdapter } = await import(
+			"../auth/[...nextauth]/route"
+		);
+		return authOptionsWithAdapter;
+	} catch {
+		return baseAuthOptions;
+	}
+};
+
+async function checkAuth() {
+	const authOptions = await getAuthOptions();
+	const session = await getServerSession(authOptions);
+
+	if (!session?.user) {
+		return null;
+	}
+
+	return session.user.id;
+}
 
 export async function GET() {
 	try {
-		const projects = await db.all(
-			"SELECT * FROM projects ORDER BY created_at DESC"
-		);
-		return NextResponse.json(projects);
+		const userId = await checkAuth();
+
+		if (!userId) {
+			return NextResponse.json({ message: "Non autorisé" }, { status: 401 });
+		}
+
+		const result = await getProjects(userId);
+
+		if (!result.success) {
+			return NextResponse.json({ message: result.error }, { status: 500 });
+		}
+
+		return NextResponse.json(result.data);
 	} catch (error: unknown) {
 		if (error instanceof Error) {
 			return NextResponse.json({ message: error.message }, { status: 500 });
@@ -16,47 +55,25 @@ export async function GET() {
 	}
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
 	try {
-		const body = await request.json();
-		const {
-			name,
-			description,
-			priority,
-			time,
-			urgent,
-			important,
-			desire,
-			relevance,
-			weeklyHours,
-			preferredDays,
-			preferredHours,
-		} = body;
+		const userId = await checkAuth();
 
-		const result = await db.run(
-			`INSERT INTO projects (
-				name, description, priority, time, urgent, important, 
-				desire, relevance, weekly_hours, preferred_days, 
-				preferred_hours, created_at
-			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
-			[
-				name,
-				description,
-				priority,
-				time,
-				urgent,
-				important,
-				desire,
-				relevance,
-				weeklyHours,
-				JSON.stringify(preferredDays),
-				JSON.stringify(preferredHours),
-			]
-		);
+		if (!userId) {
+			return NextResponse.json({ message: "Non autorisé" }, { status: 401 });
+		}
+
+		const body = await request.json();
+
+		const result = await createProject(userId, body);
+
+		if (!result.success) {
+			return NextResponse.json({ message: result.error }, { status: 500 });
+		}
 
 		return NextResponse.json({
-			message: "Project saved successfully",
-			projectId: result.lastID,
+			message: result.message,
+			projectId: result.projectId,
 		});
 	} catch (error: unknown) {
 		if (error instanceof Error) {
@@ -67,56 +84,32 @@ export async function POST(request: Request) {
 	}
 }
 
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
 	try {
-		const body = await request.json();
-		const {
-			id,
-			name,
-			description,
-			priority,
-			time,
-			urgent,
-			important,
-			desire,
-			relevance,
-			weeklyHours,
-			preferredDays,
-			preferredHours,
-		} = body;
+		const userId = await checkAuth();
 
-		await db.run(
-			`UPDATE projects SET 
-				name = ?, 
-				description = ?, 
-				priority = ?, 
-				time = ?, 
-				urgent = ?, 
-				important = ?, 
-				desire = ?, 
-				relevance = ?,
-				weekly_hours = ?,
-				preferred_days = ?,
-				preferred_hours = ?
-			WHERE id = ?`,
-			[
-				name,
-				description,
-				priority,
-				time,
-				urgent,
-				important,
-				desire,
-				relevance,
-				weeklyHours,
-				JSON.stringify(preferredDays),
-				JSON.stringify(preferredHours),
-				id,
-			]
-		);
+		if (!userId) {
+			return NextResponse.json({ message: "Non autorisé" }, { status: 401 });
+		}
+
+		const body = await request.json();
+		const { id, ...projectData } = body;
+
+		if (!id) {
+			return NextResponse.json(
+				{ message: "ID du projet requis" },
+				{ status: 400 }
+			);
+		}
+
+		const result = await updateProject(userId, id, projectData);
+
+		if (!result.success) {
+			return NextResponse.json({ message: result.error }, { status: 500 });
+		}
 
 		return NextResponse.json({
-			message: "Project updated successfully",
+			message: result.message,
 		});
 	} catch (error: unknown) {
 		if (error instanceof Error) {
@@ -127,16 +120,27 @@ export async function PUT(request: Request) {
 	}
 }
 
-export async function DELETE(request: Request) {
+export async function DELETE(request: NextRequest) {
 	try {
+		const userId = await checkAuth();
+
+		if (!userId) {
+			return NextResponse.json({ message: "Non autorisé" }, { status: 401 });
+		}
+
 		const { searchParams } = new URL(request.url);
 		const id = searchParams.get("id");
 		const deleteAll = searchParams.get("deleteAll") === "true";
 
 		if (deleteAll) {
-			await db.run("DELETE FROM projects");
+			const result = await deleteAllProjects(userId);
+
+			if (!result.success) {
+				return NextResponse.json({ message: result.error }, { status: 500 });
+			}
+
 			return NextResponse.json({
-				message: "All projects deleted successfully",
+				message: result.message,
 			});
 		}
 
@@ -147,10 +151,14 @@ export async function DELETE(request: Request) {
 			);
 		}
 
-		await db.run("DELETE FROM projects WHERE id = ?", [id]);
+		const result = await deleteProject(userId, parseInt(id));
+
+		if (!result.success) {
+			return NextResponse.json({ message: result.error }, { status: 500 });
+		}
 
 		return NextResponse.json({
-			message: "Project deleted successfully",
+			message: result.message,
 		});
 	} catch (error: unknown) {
 		if (error instanceof Error) {
