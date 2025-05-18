@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions as baseAuthOptions } from "@/lib/auth";
+import { authOptions } from "@/lib/auth";
 import {
 	getProjects,
 	createProject,
@@ -9,19 +9,7 @@ import {
 	deleteAllProjects,
 } from "@/lib/projects";
 
-const getAuthOptions = async () => {
-	try {
-		const { authOptionsWithAdapter } = await import(
-			"../auth/[...nextauth]/route"
-		);
-		return authOptionsWithAdapter;
-	} catch {
-		return baseAuthOptions;
-	}
-};
-
 async function checkAuth() {
-	const authOptions = await getAuthOptions();
 	const session = await getServerSession(authOptions);
 
 	if (!session?.user) {
@@ -64,7 +52,6 @@ export async function POST(request: NextRequest) {
 		}
 
 		const body = await request.json();
-
 		const result = await createProject(userId, body);
 
 		if (!result.success) {

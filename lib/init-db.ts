@@ -3,10 +3,8 @@ import { initDbSchema } from "./schema";
 
 export async function initDatabase() {
 	try {
-		// Initialiser les tables pour l'authentification et les sessions
 		await initDbSchema();
 
-		// Initialiser les tables pour les projets
 		await initDb();
 
 		return { success: true };
@@ -19,7 +17,6 @@ export async function initDatabase() {
 	}
 }
 
-// Pour exécuter l'initialisation de la DB manuellement, décommentez ceci:
 // initDatabase()
-//   .then(result => console.log('Initialisation terminée:', result))
-//   .catch(err => console.error('Erreur:', err));
+// 	.then((result) => console.log("Initialisation terminée:", result))
+// 	.catch((err) => console.error("Erreur:", err));

@@ -2,7 +2,6 @@ import { sql } from "@vercel/postgres";
 
 export async function initDbSchema() {
 	try {
-		// Création de la table users
 		await sql`
       CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
@@ -15,9 +14,6 @@ export async function initDbSchema() {
       )
     `;
 
-		// Table projets (déjà gérée par lib/db.ts)
-
-		// Création des tables nécessaires pour NextAuth
 		await sql`
       CREATE TABLE IF NOT EXISTS accounts (
         id TEXT PRIMARY KEY,

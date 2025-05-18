@@ -6,6 +6,8 @@ import { Toaster } from "sonner";
 import Header from "@/components/common/Header";
 import { RefreshProvider } from "@/context/RefreshContext";
 import { AuthProvider } from "@/components/auth/AuthProvider";
+import { useEffect } from "react";
+import { initDatabase } from "@/lib/init-db";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -14,6 +16,10 @@ export default function RootLayout({
 }: {
 	children: React.ReactNode;
 }) {
+	useEffect(() => {
+		initDatabase();
+	}, []);
+
 	return (
 		<html lang="fr">
 			<body className={`${inter.className} bg-gray-50 min-h-screen`}>
