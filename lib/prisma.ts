@@ -5,8 +5,6 @@ declare global {
 	var prisma: PrismaClient | undefined;
 }
 
-// Cette approche évite de multiples instances de Prisma Client en développement
-// et garantit une instance unique en production
 export const prisma =
 	global.prisma ||
 	new PrismaClient({
@@ -16,7 +14,6 @@ export const prisma =
 				: ["error"],
 	});
 
-// En développement, attacher à l'objet global pour la persistance entre les hot reloads
 if (process.env.NODE_ENV !== "production") {
 	global.prisma = prisma;
 }

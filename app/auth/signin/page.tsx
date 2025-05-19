@@ -16,12 +16,10 @@ export default function SignIn() {
 		google: false,
 	});
 
-	// Fonction pour gérer la connexion avec gestion d'erreur
 	const handleSignIn = async (provider: string) => {
 		try {
 			setIsLoading((prev) => ({ ...prev, [provider]: true }));
 
-			// Utiliser la fonction signIn de NextAuth
 			await signIn(provider, {
 				callbackUrl,
 				redirect: true,

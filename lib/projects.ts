@@ -2,24 +2,6 @@ import { NextResponse } from "next/server";
 import { prisma } from "./prisma";
 import { auth } from "@/auth";
 
-// Types pour les projets
-interface Project {
-	id: number;
-	name: string;
-	description: string | null;
-	priority: number | null;
-	time: boolean | null;
-	urgent: boolean | null;
-	important: boolean | null;
-	desire: boolean | null;
-	relevance: string | null;
-	weekly_hours: number | null;
-	preferred_days: string | null;
-	preferred_hours: string | null;
-	created_at: Date;
-	user_id: string;
-}
-
 // Récupérer tous les projets de l'utilisateur connecté
 export async function getProjects() {
 	const session = await auth();
