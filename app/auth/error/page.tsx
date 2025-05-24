@@ -3,8 +3,9 @@
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Suspense } from "react";
 
-export default function ErrorPage() {
+function ErrorContent() {
 	const searchParams = useSearchParams();
 	const error = searchParams.get("error");
 
@@ -44,5 +45,26 @@ export default function ErrorPage() {
 				</div>
 			</div>
 		</div>
+	);
+}
+
+export default function ErrorPage() {
+	return (
+		<Suspense
+			fallback={
+				<div className="flex items-center justify-center min-h-screen bg-gray-50">
+					<div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow">
+						<div className="text-center">
+							<h1 className="text-3xl font-bold text-red-600">
+								Erreur d&apos;authentification
+							</h1>
+							<p className="mt-2 text-gray-600">Chargement...</p>
+						</div>
+					</div>
+				</div>
+			}
+		>
+			<ErrorContent />
+		</Suspense>
 	);
 }

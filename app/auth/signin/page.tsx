@@ -6,9 +6,9 @@ import { Github, Mail } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import AuthCheck from "@/components/auth/AuthCheck";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 
-export default function SignIn() {
+function SignInContent() {
 	const searchParams = useSearchParams();
 	const callbackUrl = searchParams.get("callbackUrl") || "/";
 	const [isLoading, setIsLoading] = useState<{ [key: string]: boolean }>({
@@ -88,5 +88,24 @@ export default function SignIn() {
 				</div>
 			</div>
 		</AuthCheck>
+	);
+}
+
+export default function SignIn() {
+	return (
+		<Suspense
+			fallback={
+				<div className="flex items-center justify-center min-h-screen bg-gray-50">
+					<div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow">
+						<div className="text-center">
+							<h1 className="text-3xl font-bold">Connectez-vous à Worth It</h1>
+							<p className="mt-2 text-gray-600">Chargement...</p>
+						</div>
+					</div>
+				</div>
+			}
+		>
+			<SignInContent />
+		</Suspense>
 	);
 }
