@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { DASHBOARD_ROUTE, LANDING_ROUTE } from "@/helpers/routes";
 
 const Header = () => {
 	const { triggerRefresh } = useRefresh();
@@ -18,16 +19,21 @@ const Header = () => {
 	return (
 		<div className="mb-8 fixed top-0 left-0 right-0 z-50 bg-white p-4 shadow-sm">
 			<div className="container mx-auto flex justify-between items-center">
-				<Link href="/">
-					<Image
-						src="/Logo.png"
-						alt="Worth It Logo"
-						width={40}
-						height={40}
-						className="w-8 h-8"
-					/>
-
-					<h1 className="text-3xl font-bold">Worth It</h1>
+				<Link
+					href={session ? DASHBOARD_ROUTE : LANDING_ROUTE}
+					className="flex items-center justify-center gap-2"
+				>
+					<div className="relative w-8 h-8">
+						<Image
+							src="/images/Logo.png"
+							alt="Worth It Logo"
+							width={75}
+							height={75}
+							priority
+							className="w-6"
+						/>
+					</div>
+					<h1 className="text-2xl font-bold">Worth It</h1>
 				</Link>
 				<div className="flex items-center gap-4">
 					{session ? (
@@ -39,7 +45,7 @@ const Header = () => {
 							<Button
 								variant="ghost"
 								className="flex items-center gap-2"
-								onClick={() => signOut()}
+								onClick={() => signOut({ callbackUrl: LANDING_ROUTE })}
 							>
 								<LogOut className="w-5 h-5" />
 								<span className="hidden sm:inline">Déconnexion</span>

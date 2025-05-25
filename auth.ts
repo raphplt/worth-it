@@ -4,11 +4,19 @@ import GoogleProvider from "next-auth/providers/google";
 import type { NextAuthConfig } from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "./lib/prisma";
+import type { PrismaClient } from "@prisma/client";
 
 export const runtime = "nodejs";
 
+type PrismaClientWithExtensions = PrismaClient & {
+	[key: string]: unknown;
+};
+
+const prismaClient = prisma as PrismaClientWithExtensions;
+const prismaAdapter = PrismaAdapter(prismaClient);
+
 export const config = {
-	adapter: PrismaAdapter(prisma),
+	adapter: prismaAdapter,
 	providers: [
 		GitHubProvider({
 			clientId: process.env.GITHUB_ID || "",
@@ -20,17 +28,24 @@ export const config = {
 		}),
 	],
 	callbacks: {
-		async jwt({ token, user }) {
-			if (user && token) {
+		async jwt({ token, user, account }) {
+			if (user) {
 				token.id = user.id;
+			}
+			if (account) {
+				token.provider = account.provider;
 			}
 			return token;
 		},
 		async session({ session, token }) {
-			if (session?.user && token?.id) {
-				session.user.id = token.id as string;
+			if (session?.user) {
+				session.user.id = token.id;
+				session.user.provider = token.provider;
 			}
 			return session;
+		},
+		async signIn() {
+			return true;
 		},
 	},
 	pages: {
@@ -38,6 +53,11 @@ export const config = {
 		signOut: "/auth/signout",
 		error: "/auth/error",
 	},
+	session: {
+		strategy: "jwt",
+		maxAge: 30 * 24 * 60 * 60,
+	},
+	secret: process.env.NEXTAUTH_SECRET,
 } satisfies NextAuthConfig;
 
 export const { handlers, auth, signIn, signOut } = NextAuth(config);

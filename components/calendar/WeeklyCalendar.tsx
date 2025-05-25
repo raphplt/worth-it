@@ -23,7 +23,6 @@ export default function WeeklyCalendar() {
 		goToCurrentWeek,
 	} = useSchedule(projects);
 
-	// Memoize the effect callback to prevent unnecessary rerenders
 	const initializeSchedule = useCallback(() => {
 		if (projects.length > 0) {
 			generateSchedule();
@@ -39,7 +38,6 @@ export default function WeeklyCalendar() {
 		toast.success("Emploi du temps régénéré");
 	};
 
-	// Create week label from currentWeek
 	const getWeekLabel = () => {
 		if (currentWeek.length === 0) return "";
 
@@ -54,10 +52,8 @@ export default function WeeklyCalendar() {
 		return `${formatter.format(startDate)} - ${formatter.format(endDate)}`;
 	};
 
-	// Handle week navigation
 	const handlePreviousWeek = () => {
 		goToPreviousWeek();
-		// We need to regenerate the schedule after changing the week
 		setTimeout(() => generateSchedule(), 0);
 	};
 

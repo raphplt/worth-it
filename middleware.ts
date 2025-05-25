@@ -1,39 +1,26 @@
+import { auth } from "@/auth";
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { DASHBOARD_ROUTE, LANDING_ROUTE } from "./helpers/routes";
 
+export default auth((req) => {
+	const isLoggedIn = !!req.auth;
+	const isOnAuthPage = req.nextUrl.pathname.startsWith("/auth");
+	const isOnProtectedRoute =
+		req.nextUrl.pathname.startsWith("/dashboard") ||
+		req.nextUrl.pathname.startsWith("/settings") ||
+		req.nextUrl.pathname === "/";
 
-const publicPaths = ["/auth/signin", "/api/auth"];
-
-export async function middleware(request: NextRequest) {
-	const { pathname } = request.nextUrl;
-
-	if (
-		pathname.startsWith("/_next") ||
-		pathname.includes("/api/auth/") ||
-		pathname === "/favicon.ico" ||
-		publicPaths.some((path) => pathname.startsWith(path))
-	) {
-		return NextResponse.next();
+	if (!isLoggedIn && isOnProtectedRoute) {
+		return NextResponse.redirect(new URL(LANDING_ROUTE, req.url));
 	}
 
-	const token = await getToken({
-		req: request,
-		secret: process.env.NEXTAUTH_SECRET,
-	});
-
-	if (!token) {
-		const signInUrl = new URL("/auth/signin", request.url);
-		signInUrl.searchParams.set("callbackUrl", request.url);
-		return NextResponse.redirect(signInUrl);
+	if (isLoggedIn && (isOnAuthPage || req.nextUrl.pathname === LANDING_ROUTE)) {
+		return NextResponse.redirect(new URL(DASHBOARD_ROUTE, req.url));
 	}
 
 	return NextResponse.next();
-}
+});
 
 export const config = {
-	matcher: [
-
-		"/((?!_next/|api/auth/|favicon.ico).*)",
-	],
+	matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };
