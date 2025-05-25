@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "setup-db": "node setup-db.js"
+    "setup-db": "node setup-db.js",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@auth/pg-adapter": "^1.9.1",
@@ -30,6 +31,7 @@
     "next": "15.3.2",
     "next-auth": "5.0.0-beta.28",
     "pg": "^8.16.0",
+    "prisma": "^6.8.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.56.3",
