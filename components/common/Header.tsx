@@ -5,6 +5,7 @@ import { useRefresh } from "@/context/RefreshContext";
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 const Header = () => {
 	const { triggerRefresh } = useRefresh();
@@ -18,6 +19,14 @@ const Header = () => {
 		<div className="mb-8 fixed top-0 left-0 right-0 z-50 bg-white p-4 shadow-sm">
 			<div className="container mx-auto flex justify-between items-center">
 				<Link href="/">
+					<Image
+						src="/Logo.png"
+						alt="Worth It Logo"
+						width={40}
+						height={40}
+						className="w-8 h-8"
+					/>
+
 					<h1 className="text-3xl font-bold">Worth It</h1>
 				</Link>
 				<div className="flex items-center gap-4">

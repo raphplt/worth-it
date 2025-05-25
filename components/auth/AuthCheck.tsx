@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Spinner } from "../ui/spinner";
 
 export default function AuthCheck({
 	children,
@@ -30,7 +31,7 @@ export default function AuthCheck({
 		return (
 			<div className="flex items-center justify-center h-96">
 				<div className="text-center">
-					<div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
+					<Spinner size="large" />
 					<p>Chargement de la session...</p>
 				</div>
 			</div>
@@ -44,7 +45,7 @@ export default function AuthCheck({
 	return (
 		<div className="flex items-center justify-center h-96">
 			<div className="text-center">
-				<div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
+				<Spinner size="large" />
 				<p>Redirection vers la page de connexion...</p>
 			</div>
 		</div>

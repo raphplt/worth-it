@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import AuthCheck from "@/components/auth/AuthCheck";
 import { useState, Suspense } from "react";
+import { Spinner } from "@/components/ui/spinner";
 
 function SignInContent() {
 	const searchParams = useSearchParams();
@@ -50,7 +51,7 @@ function SignInContent() {
 						>
 							{isLoading.github ? (
 								<span className="absolute left-4">
-									<div className="animate-spin h-5 w-5 border-t-2 border-b-2 border-primary rounded-full"></div>
+									<Spinner size="small" />
 								</span>
 							) : (
 								<Github className="w-5 h-5 mr-2" />
@@ -66,7 +67,7 @@ function SignInContent() {
 						>
 							{isLoading.google ? (
 								<span className="absolute left-4">
-									<div className="animate-spin h-5 w-5 border-t-2 border-b-2 border-primary rounded-full"></div>
+									<Spinner size="small" />
 								</span>
 							) : (
 								<Mail className="w-5 h-5 mr-2" />
