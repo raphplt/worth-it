@@ -4,8 +4,12 @@ import { useProjects } from "./hooks/useProjects";
 import { useSchedule } from "./hooks/useSchedule";
 import CalendarControls from "./CalendarControls";
 import DayColumn from "./DayColumn";
+import NewProject from "../common/NewProject";
+import { useRefresh } from "@/context/RefreshContext";
 
 export default function WeeklyCalendar() {
+	const { triggerRefresh } = useRefresh();
+
 	const { projects, isLoading, error } = useProjects();
 	const {
 		displayMode,
@@ -75,10 +79,15 @@ export default function WeeklyCalendar() {
 		return <div className="p-4 text-center text-red-500">{error}</div>;
 	}
 
+	const handleProjectCreated = () => {
+		triggerRefresh();
+	};
+
 	if (projects.length === 0) {
 		return (
-			<div className="p-4 text-center">
-				Aucun projet à afficher dans le calendrier
+			<div className="p-4 text-center flex flex-col items-center gap-4 justify-center h-full">
+				<p>Aucun projet à afficher dans le calendrier</p>
+				<NewProject onProjectCreated={handleProjectCreated} />
 			</div>
 		);
 	}

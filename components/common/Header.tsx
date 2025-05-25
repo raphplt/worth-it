@@ -45,7 +45,12 @@ const Header = () => {
 							<Button
 								variant="ghost"
 								className="flex items-center gap-2"
-								onClick={() => signOut({ callbackUrl: LANDING_ROUTE })}
+								onClick={() =>
+									signOut({
+										callbackUrl: LANDING_ROUTE,
+										redirect: true,
+									})
+								}
 							>
 								<LogOut className="w-5 h-5" />
 								<span className="hidden sm:inline">Déconnexion</span>

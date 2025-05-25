@@ -1,14 +1,17 @@
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
-import { DASHBOARD_ROUTE, LANDING_ROUTE } from "./helpers/routes";
+import {
+	DASHBOARD_ROUTE,
+	LANDING_ROUTE,
+	SETTINGS_ROUTE,
+} from "./helpers/routes";
 
 export default auth((req) => {
 	const isLoggedIn = !!req.auth;
 	const isOnAuthPage = req.nextUrl.pathname.startsWith("/auth");
 	const isOnProtectedRoute =
-		req.nextUrl.pathname.startsWith("/dashboard") ||
-		req.nextUrl.pathname.startsWith("/settings") ||
-		req.nextUrl.pathname === "/";
+		req.nextUrl.pathname.startsWith(DASHBOARD_ROUTE) ||
+		req.nextUrl.pathname.startsWith(SETTINGS_ROUTE);
 
 	if (!isLoggedIn && isOnProtectedRoute) {
 		return NextResponse.redirect(new URL(LANDING_ROUTE, req.url));
