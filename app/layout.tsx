@@ -1,13 +1,41 @@
-"use client";
-
-import "./globals.css";
+import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { Toaster } from "sonner";
-import Header from "@/components/common/Header";
+import "./globals.css";
 import { RefreshProvider } from "@/context/RefreshContext";
-import { SessionProvider } from "next-auth/react";
+import { Toaster } from "sonner";
+import { Providers } from "@/components/common/Providers";
+import Footer from "@/components/common/Footer";
 
 const inter = Inter({ subsets: ["latin"] });
+
+export const metadata: Metadata = {
+	title: "Worth It - Gestion de projets intelligente",
+	description:
+		"Planifiez, collaborez et suivez la progression de vos équipes en temps réel. Worth It simplifie la gestion de projet pour tous.",
+	keywords: "gestion de projet, collaboration, productivité, équipe, ROI",
+	authors: [{ name: "Worth It Team" }],
+	openGraph: {
+		title: "Worth It - Gestion de projets intelligente",
+		description: "L'outil qui vous aide à prioriser et réussir vos projets",
+		url: "https://worth-it.com",
+		siteName: "Worth It",
+		images: [
+			{
+				url: "/images/og-image.png",
+				width: 1200,
+				height: 630,
+			},
+		],
+		locale: "fr_FR",
+		type: "website",
+	},
+	twitter: {
+		card: "summary_large_image",
+		title: "Worth It - Gestion de projets intelligente",
+		description: "L'outil qui vous aide à prioriser et réussir vos projets",
+		images: ["/images/og-image.png"],
+	},
+};
 
 export default function RootLayout({
 	children,
@@ -16,16 +44,14 @@ export default function RootLayout({
 }) {
 	return (
 		<html lang="fr">
-			<body className={`${inter.className} bg-gray-50 min-h-screen`}>
-				<SessionProvider>
+			<body className={inter.className}>
+				<Providers>
 					<RefreshProvider>
-						<div className="container mx-auto p-4">
-							<Header />
-							<div className="mt-16">{children}</div>
-						</div>
-						<Toaster richColors position="top-center" />
+						{children}
+						<Toaster />
+						<Footer />
 					</RefreshProvider>
-				</SessionProvider>
+				</Providers>
 			</body>
 		</html>
 	);
