@@ -8,8 +8,8 @@ import { MoreVertical, Trash } from "lucide-react";
 
 type ProjectCardProps = {
 	project: Project;
-	fetchProjects: () => void;
-	handleDelete: (id: number) => void;
+	fetchProjects?: () => void;
+	handleDelete?: (id: number) => void;
 };
 
 const ProjectCard = ({
@@ -17,6 +17,12 @@ const ProjectCard = ({
 	fetchProjects,
 	handleDelete,
 }: ProjectCardProps) => {
+	const handleDeleteClick = () => {
+		if (handleDelete) {
+			handleDelete(project.id);
+		}
+	};
+
 	return (
 		<div
 			key={project.id}
@@ -37,15 +43,15 @@ const ProjectCard = ({
 					</PopoverTrigger>
 					<PopoverContent className="flex flex-col gap-4">
 						<ProjectDetails project={project} />
-						<EditProject project={project} onProjectUpdated={fetchProjects} />
-						<Button
-							variant="destructive"
-							size="sm"
-							onClick={() => handleDelete(project.id)}
-						>
-							<Trash className="w-4 h-4 mr-2" />
-							Supprimer
-						</Button>
+						{fetchProjects && (
+							<EditProject project={project} onProjectUpdated={fetchProjects} />
+						)}
+						{handleDelete && (
+							<Button variant="destructive" size="sm" onClick={handleDeleteClick}>
+								<Trash className="w-4 h-4 mr-2" />
+								Supprimer
+							</Button>
+						)}
 					</PopoverContent>
 				</Popover>
 			</div>

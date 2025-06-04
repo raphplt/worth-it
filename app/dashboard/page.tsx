@@ -1,28 +1,39 @@
 "use client";
+import LoadingSpinner from "@/components/common/Loading";
+import DashboardHeader from "@/components/dashboard/HeaderDashboard";
+import ProjectsSection from "@/components/dashboard/ProjectsSectionProps";
+import Sidebar from "@/components/dashboard/Sidebar";
+import StatsCards from "@/components/dashboard/StatsCards";
 import { useRefresh } from "@/context/RefreshContext";
-import ProjectList from "@/components/common/ProjectList";
-import WeeklyCalendar from "@/components/calendar/WeeklyCalendar";
+import { useDashboardData } from "@/hooks/useDashboardData";
+import { useState } from "react";
 
 export default function Dashboard() {
-	const { refreshTrigger } = useRefresh();
+	const { refreshTrigger, triggerRefresh } = useRefresh();
+	const { projects, stats, isLoading } = useDashboardData(refreshTrigger);
+	const [selectedFilter, setSelectedFilter] = useState("all");
+
+	if (isLoading) {
+		return <LoadingSpinner message="Chargement de votre dashboard..." />;
+	}
 
 	return (
-		<main>
-			<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-				<div className="lg:col-span-1">
-					<div className="bg-white rounded-lg shadow p-6">
-						<h2 className="text-xl font-semibold mb-4">Mes Projets</h2>
-						<ProjectList key={`projects-${refreshTrigger}`} />
-					</div>
-				</div>
+		<div className="min-h-screen bg-gray-50">
+			<DashboardHeader onRefresh={triggerRefresh} />
 
-				<div className="lg:col-span-2">
-					<div className="bg-white rounded-lg shadow p-6">
-						<h2 className="text-xl font-semibold mb-4">Calendrier Hebdomadaire</h2>
-						<WeeklyCalendar key={`calendar-${refreshTrigger}`} />
-					</div>
+			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+				<StatsCards stats={stats} />
+
+				<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+					<ProjectsSection
+						projects={projects}
+						selectedFilter={selectedFilter}
+						onFilterChange={setSelectedFilter}
+						onRefresh={triggerRefresh}
+					/>
+					<Sidebar stats={stats} />
 				</div>
 			</div>
-		</main>
+		</div>
 	);
 }

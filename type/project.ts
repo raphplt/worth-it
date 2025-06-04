@@ -13,4 +13,6 @@ export interface Project {
 	important: boolean;
 	desire: boolean;
 	deadline: string;
+	completedHours: number;
+	status: "active" | "completed";
 }
